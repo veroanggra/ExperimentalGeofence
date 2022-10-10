@@ -10,6 +10,7 @@ import android.os.Build
 import android.provider.Settings
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
 
 object PermissionHelper {
     @SuppressLint("ObsoleteSdkInt")
@@ -41,7 +42,30 @@ object PermissionHelper {
         requestPermissions(activity, needPermission.first(), requestCode, true)
     }
 
-    private fun requestPermissions(
+    fun checkPermission(
+        fragment: Fragment,
+        permissions: Array<String>,
+        isCancel: Boolean,
+        requestCode: Int,
+        showPermissionDialog: ((permission: String, isCancel: Boolean) -> Unit)? = null,
+        onGrantDenied: (() -> Unit)? = null,
+        onGrantAllowed: (() -> Unit)? = null
+    ) {
+        permissions.find { !hasPermission(fragment.requireActivity(), it) }?.let {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(
+                    fragment.requireActivity(),
+                    it
+            )) {
+                showPermissionDialog?.invoke(it, isCancel)
+                onGrantDenied?.invoke()
+            } else {
+                fragment.requestPermissions(permissions, requestCode)
+            }
+            return
+        } ?: onGrantAllowed?.invoke()
+    }
+
+    fun requestPermissions(
         activity: Activity,
         permission: String,
         requestCode: Int,
@@ -54,7 +78,7 @@ object PermissionHelper {
         }
     }
 
-    private fun startAppSettingActivity(activity: Activity, finishActivityRational: Boolean) {
+    fun startAppSettingActivity(activity: Activity, finishActivityRational: Boolean) {
         try {
             activity.startActivity(
                 Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).setData(
@@ -67,10 +91,12 @@ object PermissionHelper {
         }
     }
 
-    private fun hasPermission(context: Context, permission: String): Boolean {
+    fun hasPermission(context: Context, permission: String): Boolean {
         return ContextCompat.checkSelfPermission(
             context,
             permission
         ) == PackageManager.PERMISSION_GRANTED
     }
+
+
 }
