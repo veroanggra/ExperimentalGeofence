@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">ExperimentalGeofence</string>
+    <string name="geofencing_title_campaign">Experimental Campaign</string>
 </resources>

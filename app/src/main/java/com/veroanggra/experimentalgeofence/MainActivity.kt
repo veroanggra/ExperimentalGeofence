@@ -2,19 +2,25 @@ package com.veroanggra.experimentalgeofence
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.content.Intent
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.job.JobInfo
+import android.app.job.JobScheduler
+import android.content.ComponentName
+import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.PersistableBundle
+import android.util.Log
 import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.getSystemService
 import com.google.android.gms.location.*
-import com.google.android.gms.maps.CameraUpdate
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.CircleOptions
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
@@ -23,6 +29,7 @@ import com.google.firebase.ktx.Firebase
 import com.veroanggra.experimentalgeofence.databinding.ActivityMainBinding
 import com.veroanggra.experimentalgeofence.util.Campaign
 import com.veroanggra.experimentalgeofence.util.PermissionHelper
+import kotlin.random.Random
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
@@ -49,7 +56,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         TODO("Not yet implemented")
     }
 
-    @SuppressLint("MissingPermission")
     override fun onMapReady(p0: GoogleMap) {
         map = p0
         map.uiSettings.isZoomControlsEnabled = true
@@ -64,10 +70,17 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 LOCATION_REQUEST_CODE
             )
         } else {
-            if (PermissionHelper.getDeniedPermission(this, locationPermissions)) {
+            this.map.isMyLocationEnabled = true
+            if (ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
                 return
             }
-            this.map.isMyLocationEnabled = true
             fusedLocationProviderClient.lastLocation.addOnSuccessListener {
                 if (it != null) {
                     with(map) {
@@ -137,6 +150,57 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 //        val intent = Intent(this, GEo)
     }
 
+    fun scheduleJob() {
+        val componentName = ComponentName(this, CampaignService::class.java)
+        val info = JobInfo.Builder(321, componentName)
+            .setRequiresCharging(false)
+            .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+            .setPersisted(true)
+            .setPeriodic(15 * 60 * 1000)
+            .build()
+
+        val scheduler = getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
+        val resultCode = scheduler.schedule(info)
+        if (resultCode == JobScheduler.RESULT_SUCCESS) {
+            Log.d(TAG, "Job scheduled")
+        } else {
+            Log.d(TAG, "Job scheduling failed")
+            scheduleJob()
+        }
+    }
+
+    fun cancelJob() {
+        val scheduler = getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
+        scheduler.cancel(321)
+        Log.d(TAG, "Job cancelled")
+    }
+
+    @SuppressLint("ObsoleteSdkInt")
+    fun showNotification(context: Context?, message: String) {
+        val CHANNEL_ID = "CAMPAIGN_NOTIFICATION_CHANNEL"
+        var notification_id = 1589
+        notification_id += Random(notification_id).nextInt(1, 30)
+
+        val notificationBuilder =
+            context?.let {
+                NotificationCompat.Builder(it.applicationContext, CHANNEL_ID)
+                    .setSmallIcon(R.drawable.droid)
+                    .setContentTitle(context.getString(R.string.geofencing_title_campaign))
+                    .setContentText(message)
+                    .setStyle(NotificationCompat.BigTextStyle().bigText(message))
+                    .setPriority(NotificationCompat.PRIORITY_DEFAULT) }
+
+        val notificationManager = context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(CHANNEL_ID, context.getString(R.string.geofencing_title_campaign), NotificationManager.IMPORTANCE_DEFAULT).apply {
+                description = context.getString(R.string.geofencing_title_campaign)
+            }
+            notificationManager.createNotificationChannel(channel)
+        }
+        notificationManager.notify(notification_id, notificationBuilder?.build())
+    }
+
     companion object {
         val locationPermissions = mutableListOf<String>(
             Manifest.permission.ACCESS_COARSE_LOCATION,
@@ -148,5 +212,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         const val GEOFENCE_ID = "CAMPAIGN_GEOFENCE_ID"
         const val GEOFENCE_EXPIRATION = 10 * 24 * 60 * 60 * 1000 // 10 days
         const val GEOFENCE_DWELL_DELAY = 10 * 1000 // 10 secs // 2 minutes
+        private val TAG: String = MainActivity::class.java.simpleName
     }
 }
