@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "451183015352",
+    "project_id": "geofenceexperimental",
+    "storage_bucket": "geofenceexperimental.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:451183015352:android:2f86c314fddb6c6158cb4d",
+        "android_client_info": {
+          "package_name": "com.veroanggra.experimentalgeofence"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "451183015352-ns6fsfs0msn99b1ss2aae8o16pdodjjl.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.veroanggra.experimentalgeofence",
+            "certificate_hash": "06a1fc4b4079927878f6b917b73abc1858b12698"
+          }
+        },
+        {
+          "client_id": "451183015352-ocallh81qa58qm92m50pvobgloruv737.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB55lsGkdQcfJCDLv5YS7FP0KPH8R_bQ8s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "451183015352-ocallh81qa58qm92m50pvobgloruv737.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
