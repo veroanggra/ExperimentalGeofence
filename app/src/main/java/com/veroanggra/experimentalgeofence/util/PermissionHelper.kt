@@ -1,10 +1,12 @@
 package com.veroanggra.experimentalgeofence.util
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.core.content.ContextCompat
+import com.veroanggra.experimentalgeofence.MainActivity
 
 object PermissionHelper {
     @SuppressLint("ObsoleteSdkInt")
@@ -22,7 +24,23 @@ object PermissionHelper {
         return results
     }
 
+    fun checkPermission(
+        activity: Activity,
+        permissions: Array<String>,
+        requestCode: Int,
+        grantBlock: (() -> Unit)? = null
+    ) {
+        val needPermission = getNeedGrantPermissions(permissions, activity)
+        if (needPermission.isEmpty()) {
+            grantBlock?.invoke()
+            return
+        }
+    }
+
     private fun hasPermission(context: Context, permission: String): Boolean {
-        return ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
+        return ContextCompat.checkSelfPermission(
+            context,
+            permission
+        ) == PackageManager.PERMISSION_GRANTED
     }
 }
