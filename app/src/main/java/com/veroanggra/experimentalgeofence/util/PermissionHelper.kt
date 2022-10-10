@@ -3,8 +3,11 @@ package com.veroanggra.experimentalgeofence.util
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
+import android.provider.Settings
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 
@@ -45,8 +48,22 @@ object PermissionHelper {
         isFinishActivityRational: Boolean = false
     ) {
         if (ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)) {
+            startAppSettingActivity(activity, isFinishActivityRational)
         } else {
             ActivityCompat.requestPermissions(activity, arrayOf(permission), requestCode)
+        }
+    }
+
+    private fun startAppSettingActivity(activity: Activity, finishActivityRational: Boolean) {
+        try {
+            activity.startActivity(
+                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).setData(
+                    Uri.parse("package:${activity.packageName}")
+                )
+            )
+            if (finishActivityRational) activity.finish()
+        } catch (e: Throwable) {
+            activity.startActivity(Intent(Settings.ACTION_MANAGE_APPLICATIONS_SETTINGS))
         }
     }
 
