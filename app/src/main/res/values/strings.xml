@@ -1,4 +1,6 @@
 <resources>
     <string name="app_name">ExperimentalGeofence</string>
     <string name="geofencing_title_campaign">Experimental Campaign</string>
+    <string name="noty_background">This application needs background location to work on Android 10 and higher</string>
+    <string name="noty_permission_require">The app needs location permission to function</string>
 </resources>

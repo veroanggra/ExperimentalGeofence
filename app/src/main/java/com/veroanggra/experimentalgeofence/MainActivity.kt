@@ -4,10 +4,12 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.job.JobInfo
 import android.app.job.JobScheduler
 import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Build
@@ -15,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.PersistableBundle
 import android.util.Log
+import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
@@ -45,15 +48,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         geoFencingClient = LocationServices.getGeofencingClient(this)
         val mapFragment = supportFragmentManager.findFragmentById(R.id.map_view)
         setContentView(binding.root)
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
-        super.onCreate(savedInstanceState, persistentState)
-        checkPermissionsStartgeofencing()
-    }
-
-    private fun checkPermissionsStartgeofencing() {
-        TODO("Not yet implemented")
     }
 
     override fun onMapReady(p0: GoogleMap) {
@@ -104,7 +98,14 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun setPointClick(map: GoogleMap) {
-        TODO("Not yet implemented")
+        map.setOnPoiClickListener { poi->
+            map.addMarker(
+                MarkerOptions()
+                    .position(poi.latLng)
+                    .title(poi.name)
+            )?.showInfoWindow()
+            scheduleJob()
+        }
     }
 
     private fun setLongClick(map: GoogleMap) {
@@ -133,6 +134,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     }
 
+    @SuppressLint("UnspecifiedImmutableFlag")
     private fun createGeofece(latlng: LatLng, key: String?, geoFencingClient: GeofencingClient) {
         val geofence = Geofence.Builder()
             .setRequestId(GEOFENCE_ID)
@@ -147,7 +149,77 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             .addGeofence(geofence)
             .build()
 
-//        val intent = Intent(this, GEo)
+        val intent = Intent(this, GeofenceReceiver::class.java)
+            .putExtra("key", key)
+            .putExtra(
+                "message",
+                "You are currently in the nearest campaign - ${latlng.latitude}, ${latlng.longitude}"
+            )
+
+        val pendingIntent = PendingIntent.getBroadcast(
+            applicationContext,
+            0,
+            intent,
+            PendingIntent.FLAG_CANCEL_CURRENT
+        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            if (ContextCompat.checkSelfPermission(
+                    applicationContext,
+                    Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(
+                    this, arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION),
+                    GEOFENCE_LOCATION_REQUEST_CODE
+                )
+            } else {
+                geoFencingClient.addGeofences(geofenceRequest, pendingIntent)
+            }
+        } else {
+            geoFencingClient.addGeofences(geofenceRequest, pendingIntent)
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        if (requestCode == GEOFENCE_LOCATION_REQUEST_CODE) {
+            if (permissions.isNotEmpty() && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(
+                    this,
+                    getString(R.string.noty_background),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+        if (requestCode == LOCATION_REQUEST_CODE) {
+            if (grantResults.isNotEmpty() && (grantResults[0] == PackageManager.PERMISSION_GRANTED || grantResults[1] == PackageManager.PERMISSION_GRANTED)) {
+                if (PermissionHelper.getDeniedPermission(this, locationPermissions)) {
+                    return
+                }
+                map.isMyLocationEnabled = true
+                onMapReady(map)
+            } else {
+                Toast.makeText(
+                    this,
+                    getString(R.string.noty_permission_require),
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                if (grantResults.isNotEmpty() && grantResults[2] != PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(
+                        this,
+                        getString(R.string.noty_background),
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
 
     fun scheduleJob() {
@@ -188,12 +260,18 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                     .setContentTitle(context.getString(R.string.geofencing_title_campaign))
                     .setContentText(message)
                     .setStyle(NotificationCompat.BigTextStyle().bigText(message))
-                    .setPriority(NotificationCompat.PRIORITY_DEFAULT) }
+                    .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            }
 
-        val notificationManager = context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager =
+            context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(CHANNEL_ID, context.getString(R.string.geofencing_title_campaign), NotificationManager.IMPORTANCE_DEFAULT).apply {
+            val channel = NotificationChannel(
+                CHANNEL_ID,
+                context.getString(R.string.geofencing_title_campaign),
+                NotificationManager.IMPORTANCE_DEFAULT
+            ).apply {
                 description = context.getString(R.string.geofencing_title_campaign)
             }
             notificationManager.createNotificationChannel(channel)
@@ -212,6 +290,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         const val GEOFENCE_ID = "CAMPAIGN_GEOFENCE_ID"
         const val GEOFENCE_EXPIRATION = 10 * 24 * 60 * 60 * 1000 // 10 days
         const val GEOFENCE_DWELL_DELAY = 10 * 1000 // 10 secs // 2 minutes
+        const val GEOFENCE_LOCATION_REQUEST_CODE = 12345
         private val TAG: String = MainActivity::class.java.simpleName
     }
 }
