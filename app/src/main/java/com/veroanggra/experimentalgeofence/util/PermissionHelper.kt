@@ -5,8 +5,8 @@ import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.veroanggra.experimentalgeofence.MainActivity
 
 object PermissionHelper {
     @SuppressLint("ObsoleteSdkInt")
@@ -34,6 +34,19 @@ object PermissionHelper {
         if (needPermission.isEmpty()) {
             grantBlock?.invoke()
             return
+        }
+        requestPermissions(activity, needPermission.first(), requestCode, true)
+    }
+
+    private fun requestPermissions(
+        activity: Activity,
+        permission: String,
+        requestCode: Int,
+        isFinishActivityRational: Boolean = false
+    ) {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)) {
+        } else {
+            ActivityCompat.requestPermissions(activity, arrayOf(permission), requestCode)
         }
     }
 
