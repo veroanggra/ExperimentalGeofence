@@ -23,24 +23,28 @@ class GeofenceReceiver: BroadcastReceiver() {
             val geofencingTransition = geofencingEvent?.geofenceTransition
 
             if (geofencingTransition == Geofence.GEOFENCE_TRANSITION_ENTER || geofencingTransition == Geofence.GEOFENCE_TRANSITION_DWELL) {
-                if (p1 != null) {
-                    key = p1.getStringExtra("key").toString()
-                    text = p1.getStringExtra("message").toString()
-                }
+                key = p1.getStringExtra("key").toString()
+                text = p1.getStringExtra("message").toString()
 
                 val firebase = Firebase.database
                 val reference = firebase.getReference("campaign")
-                val reminderListener = object : ValueEventListener {
+                val campaignListener = object : ValueEventListener {
                     override fun onDataChange(snapshot: DataSnapshot) {
                         val campaign = snapshot.getValue<Campaign>()
                         if (campaign != null) {
+                            MainActivity.showNotification(p0.applicationContext, "You are currently in the nearest campaign - ${campaign.lat}, ${campaign.lon}" )
                         }
                     }
 
                     override fun onCancelled(error: DatabaseError) {
-                        TODO("Not yet implemented")
+                        println("reminder:onCancelled: ${error.details}")
                     }
                 }
+                val child = reference.child(key)
+                child.addValueEventListener(campaignListener)
+
+                val triggeringGeofence = geofencingEvent.triggeringGeofences
+                triggeringGeofence?.let { MainActivity.removeGeofenfences(p0, it) }
             }
         }
     }

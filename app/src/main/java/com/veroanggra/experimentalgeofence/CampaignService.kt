@@ -38,6 +38,7 @@ class CampaignService: JobService() {
         return true
     }
 
+    @SuppressLint("ObsoleteSdkInt")
     fun showNotification(context: Context?, message: String) {
         val CHANNEL_ID = "REMINDER_NOTIFICATION_CHANNEL"
         var notificationId = 1589

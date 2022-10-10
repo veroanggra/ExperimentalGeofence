@@ -247,38 +247,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         Log.d(TAG, "Job cancelled")
     }
 
-    @SuppressLint("ObsoleteSdkInt")
-    fun showNotification(context: Context?, message: String) {
-        val CHANNEL_ID = "CAMPAIGN_NOTIFICATION_CHANNEL"
-        var notification_id = 1589
-        notification_id += Random(notification_id).nextInt(1, 30)
-
-        val notificationBuilder =
-            context?.let {
-                NotificationCompat.Builder(it.applicationContext, CHANNEL_ID)
-                    .setSmallIcon(R.drawable.droid)
-                    .setContentTitle(context.getString(R.string.geofencing_title_campaign))
-                    .setContentText(message)
-                    .setStyle(NotificationCompat.BigTextStyle().bigText(message))
-                    .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            }
-
-        val notificationManager =
-            context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                CHANNEL_ID,
-                context.getString(R.string.geofencing_title_campaign),
-                NotificationManager.IMPORTANCE_DEFAULT
-            ).apply {
-                description = context.getString(R.string.geofencing_title_campaign)
-            }
-            notificationManager.createNotificationChannel(channel)
-        }
-        notificationManager.notify(notification_id, notificationBuilder?.build())
-    }
-
     companion object {
         val locationPermissions = mutableListOf<String>(
             Manifest.permission.ACCESS_COARSE_LOCATION,
@@ -292,5 +260,44 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         const val GEOFENCE_DWELL_DELAY = 10 * 1000 // 10 secs // 2 minutes
         const val GEOFENCE_LOCATION_REQUEST_CODE = 12345
         private val TAG: String = MainActivity::class.java.simpleName
+
+        @SuppressLint("ObsoleteSdkInt")
+        fun showNotification(context: Context?, message: String) {
+            val CHANNEL_ID = "CAMPAIGN_NOTIFICATION_CHANNEL"
+            var notification_id = 1589
+            notification_id += Random(notification_id).nextInt(1, 30)
+
+            val notificationBuilder =
+                context?.let {
+                    NotificationCompat.Builder(it.applicationContext, CHANNEL_ID)
+                        .setSmallIcon(R.drawable.droid)
+                        .setContentTitle(context.getString(R.string.geofencing_title_campaign))
+                        .setContentText(message)
+                        .setStyle(NotificationCompat.BigTextStyle().bigText(message))
+                        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                }
+
+            val notificationManager =
+                context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val channel = NotificationChannel(
+                    CHANNEL_ID,
+                    context.getString(R.string.geofencing_title_campaign),
+                    NotificationManager.IMPORTANCE_DEFAULT
+                ).apply {
+                    description = context.getString(R.string.geofencing_title_campaign)
+                }
+                notificationManager.createNotificationChannel(channel)
+            }
+            notificationManager.notify(notification_id, notificationBuilder?.build())
+        }
+
+        fun removeGeofenfences(context: Context, triggerGeoList: MutableList<Geofence>) {
+            val geoList = mutableListOf<String>()
+            for (entry in triggerGeoList) {
+                geoList.add(entry.requestId)
+            }
+        }
     }
 }
