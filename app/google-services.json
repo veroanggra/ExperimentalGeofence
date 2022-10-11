@@ -1,20 +1,20 @@
 {
   "project_info": {
-    "project_number": "451183015352",
-    "project_id": "geofenceexperimental",
-    "storage_bucket": "geofenceexperimental.appspot.com"
+    "project_number": "201554837201",
+    "project_id": "geofenceproject-751a2",
+    "storage_bucket": "geofenceproject-751a2.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:451183015352:android:2f86c314fddb6c6158cb4d",
+        "mobilesdk_app_id": "1:201554837201:android:325b0c57d6c988e00bcff0",
         "android_client_info": {
           "package_name": "com.veroanggra.experimentalgeofence"
         }
       },
       "oauth_client": [
         {
-          "client_id": "451183015352-ns6fsfs0msn99b1ss2aae8o16pdodjjl.apps.googleusercontent.com",
+          "client_id": "201554837201-p6nh3snusqbpce1jh0qs9rjkpq2je4pd.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.veroanggra.experimentalgeofence",
@@ -22,20 +22,20 @@
           }
         },
         {
-          "client_id": "451183015352-ocallh81qa58qm92m50pvobgloruv737.apps.googleusercontent.com",
+          "client_id": "201554837201-2necm8gu9c1b3ok140p84hkgdo9etach.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyB55lsGkdQcfJCDLv5YS7FP0KPH8R_bQ8s"
+          "current_key": "AIzaSyCztEq-sFUMphyOOGMs2KAOlc938N08RgA"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "451183015352-ocallh81qa58qm92m50pvobgloruv737.apps.googleusercontent.com",
+              "client_id": "201554837201-2necm8gu9c1b3ok140p84hkgdo9etach.apps.googleusercontent.com",
               "client_type": 3
             }
           ]
