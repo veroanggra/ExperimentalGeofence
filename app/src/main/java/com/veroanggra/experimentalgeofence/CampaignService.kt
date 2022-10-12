@@ -1,6 +1,5 @@
 package com.veroanggra.experimentalgeofence
 
-import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.job.JobParameters
@@ -26,7 +25,7 @@ class CampaignService: JobService() {
                 if (jobCancelled) {
                     return@Thread
                 }
-                showNotification(applicationContext, "Reminder job service scheduler")
+                showNotification(applicationContext, "Nikmati diskon hingga 50% di Solarceria dengan melakukan pembayaran dengan Droid Pay")
                 jobFinished(params, true)
             }
         }.start()
@@ -38,14 +37,13 @@ class CampaignService: JobService() {
         return true
     }
 
-    @SuppressLint("ObsoleteSdkInt")
     fun showNotification(context: Context?, message: String) {
-        val CHANNEL_ID = "REMINDER_NOTIFICATION_CHANNEL"
+        val CHANNEL_ID = "CAMPAIGN_NOTIFICATION_CHANNEL"
         var notificationId = 1589
         notificationId += Random(notificationId).nextInt(1, 30)
 
         val notificationBuilder = NotificationCompat.Builder(context!!.applicationContext, CHANNEL_ID)
-            .setSmallIcon(R.drawable.droid)
+            .setSmallIcon(R.drawable.ic_baseline_attach_money_24)
             .setContentTitle(context.getString(R.string.app_name))
             .setContentText(message)
             .setStyle(

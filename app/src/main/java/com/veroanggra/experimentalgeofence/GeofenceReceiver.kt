@@ -13,38 +13,45 @@ import com.google.firebase.database.ktx.getValue
 import com.google.firebase.ktx.Firebase
 import com.veroanggra.experimentalgeofence.util.Campaign
 
-class GeofenceReceiver: BroadcastReceiver() {
-    private lateinit var key : String
-    private lateinit var text: String
 
-    override fun onReceive(p0: Context?, p1: Intent?) {
-        if (p0 != null) {
-            val geofencingEvent = p1?.let { GeofencingEvent.fromIntent(it) }
+class GeofenceReceiver : BroadcastReceiver() {
+    lateinit var key: String
+    lateinit var text: String
+
+    override fun onReceive(context: Context?, intent: Intent?) {
+        if (context != null) {
+            val geofencingEvent = GeofencingEvent.fromIntent(intent!!)
             val geofencingTransition = geofencingEvent?.geofenceTransition
 
             if (geofencingTransition == Geofence.GEOFENCE_TRANSITION_ENTER || geofencingTransition == Geofence.GEOFENCE_TRANSITION_DWELL) {
-                key = p1.getStringExtra("key").toString()
-                text = p1.getStringExtra("message").toString()
+                // Retrieve data from intent
+                if (intent != null) {
+                    key = intent.getStringExtra("key")!!
+                    text = intent.getStringExtra("message")!!
+                }
 
                 val firebase = Firebase.database
-                val reference = firebase.getReference("campaign")
-                val campaignListener = object : ValueEventListener {
+                val reference = firebase.getReference("campaigns")
+                val reminderListener = object : ValueEventListener{
                     override fun onDataChange(snapshot: DataSnapshot) {
                         val campaign = snapshot.getValue<Campaign>()
                         if (campaign != null) {
-                            MainActivity.showNotification(p0.applicationContext, "You are currently in the nearest campaign - ${campaign.lat}, ${campaign.lon}" )
+                            MainActivity
+                                .showNotification(context.applicationContext, "Nikmati cashback hingga 30% dengan makan di KintunBifet dengan melakukan pembayaran dengan Droid Pay !!")
                         }
                     }
 
                     override fun onCancelled(error: DatabaseError) {
                         println("reminder:onCancelled: ${error.details}")
                     }
+
                 }
                 val child = reference.child(key)
-                child.addValueEventListener(campaignListener)
+                child.addValueEventListener(reminderListener)
 
-                val triggeringGeofence = geofencingEvent.triggeringGeofences
-                triggeringGeofence?.let { MainActivity.removeGeofenfences(p0, it) }
+                // remove geofence
+                val triggeringGeofences = geofencingEvent.triggeringGeofences
+                MainActivity.removeGeofences(context, triggeringGeofences!!)
             }
         }
     }
