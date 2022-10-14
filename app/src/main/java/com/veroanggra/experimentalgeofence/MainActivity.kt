@@ -21,7 +21,10 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.*
+import com.google.android.gms.location.Geofence.GEOFENCE_TRANSITION_EXIT
 import com.google.android.gms.maps.*
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.CircleOptions
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
@@ -124,7 +127,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
             map.addMarker(
                 MarkerOptions().position(latlng)
-                    .title("Current location")
+                    .title("Campaign")
             )?.showInfoWindow()
             map.addCircle(
                 CircleOptions()
@@ -251,6 +254,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
+
     private fun scheduleJob() {
         val componentName = ComponentName(this, CampaignService::class.java)
         val info = JobInfo.Builder(321, componentName)
